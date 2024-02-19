@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: dev-space-ingress-host-dns-root-ssl
+  name: qa-space-ingress-host-dns-root-ssl
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /
@@ -15,7 +15,7 @@ spec:
   #    port:
   #      number: 80
   rules:
-    - host: saks.quiz.dev.samspace.cloud
+    - host: saks.quiz.qa.samspace.cloud
       http:
         paths:
           - path: /
@@ -27,5 +27,5 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - saks.quiz.dev.samspace.cloud
-      secretName: saks-quiz-dev-samspace-cloud-secret
+        - saks.quiz.qa.samspace.cloud
+      secretName: saks-quiz-qa-samspace-cloud-secret
