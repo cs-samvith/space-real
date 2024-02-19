@@ -23,13 +23,22 @@ stages:
       - job: EnvironmentConfig
         steps:
           - task: KubernetesManifest@0
-            displayName: Deploy Cluster Config to Kubernetes cluster
+            displayName: Create Dev NameSpace
             inputs:
               action: deploy
               namespace: $(k8sNamespace)
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               manifests: |
                 $(System.DefaultWorkingDirectory)/cluster-config/aks/manifests/dev/01-namespace.yml
+          - task: KubernetesManifest@0
+            displayName: Deploy Ingress Resources
+            inputs:
+              action: deploy
+              namespace: dev
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              manifests: |
+                $(System.DefaultWorkingDirectory)/cluster-config/aks/manifests/dev/02-space-ingress-host-dns-root-ssl.yml
+                $(System.DefaultWorkingDirectory)/cluster-config/aks/manifests/dev/03-space-ingress-host-dns-cpr-ssl.yml
   - stage: Qa
     dependsOn:
       - Dev
