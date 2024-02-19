@@ -1,0 +1,36 @@
+thead {
+  color: green;
+  background-color: beige;
+}
+tbody {
+  color: blue;
+  background-color: aliceblue;
+}
+table,
+th,
+td {
+  border: 1px ridge black;
+  border-width: thin;
+}
+td,
+th {
+  padding: 5px;
+}
+
+.center {
+  margin: auto;
+  border: 1px ridge green;
+  padding: 10px;
+  text-align: left;
+  display: grid;
+  background-color: azure;
+}
+
+h1 {
+  font-family: "Times New Roman", Times, serif;
+  font-weight: 200;
+  font-style: initial;
+  font-stretch: condensed;
+  margin: 0px;
+  color: black;
+}

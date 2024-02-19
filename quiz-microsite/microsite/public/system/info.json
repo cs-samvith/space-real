@@ -1,0 +1,7 @@
+{
+    "ApplicationName": "Quiz-Microsite",
+    "DeploymentPlatform": "local",
+    "DevOpsTool": "local",
+    "Environment": "dev",
+    "InstanceName": "local"
+}

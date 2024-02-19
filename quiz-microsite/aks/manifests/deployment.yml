@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quiz-microsite
+spec:
+  selector:
+    matchLabels:
+      app: quiz-microsite
+  template:
+    metadata:
+      labels:
+        app: quiz-microsite
+    spec:
+      containers:
+        - name: quiz-microsite
+          image: spacedevacr.azurecr.io/quiz-microsite:latest
+          # resources:
+          #   limits:
+          #     memory: "128Mi"
+          #     cpu: "500m"
+          ports:
+            - containerPort: 80
+          env:
+            - name: REACT_APP_Quiz_service
+              value: quiz-service
+# TODO - How to dynamically pass tag

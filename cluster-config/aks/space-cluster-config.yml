@@ -1,0 +1,32 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - /cluster-config/aks/*
+
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  service_connection: ARM_SERVICE_CONNECTION
+  kubernetesServiceConnection: "spaceaks"
+  k8sNamespace: "default"
+
+stages:
+  - stage: BuildAndDeploy
+    jobs:
+      - job: Deploy
+        steps:
+          - task: KubernetesManifest@0
+            displayName: Deploy Cluster Config to Kubernetes cluster
+            inputs:
+              action: deploy
+              namespace: $(k8sNamespace)
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              manifests: |
+                $(System.DefaultWorkingDirectory)/cluster-config/manifests/dev/01-namespace.yml

@@ -1,0 +1,93 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - /quiz-service/src/*
+      - /quiz-service/aks/*
+
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  imageRepository: "quiz-service-real"
+  containerRegistry: spacedevacr.azurecr.io
+  tag: "$(Build.BuildNumber)"
+  service_connection: ARM_SERVICE_CONNECTION
+  kubernetesServiceConnection: "spaceaks"
+  k8sNamespace: "dev"
+
+stages:
+  - stage: BuildAndDeploy
+    jobs:
+      - job: Build
+        steps:
+          - task: PowerShell@2
+            displayName: "Insert System Info"
+            inputs:
+              targetType: "inline"
+              script: |
+                $json='[{
+                    "ApplicationName": "Quiz Service",
+                    "CloudInfra": "Azure Kubernetes Service",
+                    "DevOpsTool": "ADO",
+                    "Environment": "dev",
+                    "InstanceName": "cloud",
+                    "ImageTag": "$(imageRepository):$(tag)"
+                }]'
+                $json | Out-File $(System.DefaultWorkingDirectory)/quiz-service/src/Quiz.Service/System/info.json
+              workingDirectory: "$(System.DefaultWorkingDirectory)"
+              pwsh: true # For Linux
+
+          - task: Docker@2
+            name: docker_build_and_push
+            displayName: docker build and push
+            inputs:
+              containerRegistry: $(containerRegistry)
+              repository: $(imageRepository)
+              command: "buildAndPush"
+              Dockerfile: "quiz-service/src/Quiz.Service/Dockerfile"
+              tags: |
+                latest
+                $(tag)
+      - job: Deploy
+        dependsOn:
+          - Build
+        steps:
+          - task: KubernetesManifest@0
+            displayName: Deploy db to Kubernetes cluster
+            inputs:
+              action: deploy
+              namespace: $(k8sNamespace)
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              manifests: |
+                $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/mysql/01-storage-class.yml
+                $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/mysql/02-pvc.yml
+                $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/mysql/03-configmap.yml
+                $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/mysql/04-secret.yml
+                $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/mysql/05-mysql-deployment.yml
+                $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/mysql/06-mysql-service.yml
+          - task: KubernetesManifest@0
+            displayName: Deploy file share to Kubernetes cluster
+            inputs:
+              action: deploy
+              namespace: $(k8sNamespace)
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              manifests: |
+                $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/filestorage/01-storage-class.yml
+                $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/filestorage/02-pvc.yml
+          - task: KubernetesManifest@0
+            displayName: Deploy svc to Kubernetes cluster
+            inputs:
+              action: deploy
+              namespace: $(k8sNamespace)
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              manifests: |
+                $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/deployment-with-mysql.yml
+                $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/service.yml
+              containers: |
+                $(containerRegistry)/$(imageRepository):$(tag)

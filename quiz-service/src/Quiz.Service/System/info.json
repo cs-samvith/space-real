@@ -1,0 +1,9 @@
+[
+  {
+    "ApplicationName": "Quiz-Service",
+    "DeploymentPlatform": "local",
+    "DevOpsTool": "local",
+    "Environment": "dev",
+    "InstanceName": "local"
+  }
+]
