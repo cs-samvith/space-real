@@ -22,7 +22,7 @@ spec:
             ]
       containers:
         - name: quiz-service
-          image: spacedevacr.azurecr.io/quiz-service:latest
+          image: spacedevacr.azurecr.io/quiz-service-real:latest
           ports:
             - containerPort: 80
           env:

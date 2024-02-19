@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: quiz-microsite
-          image: spacedevacr.azurecr.io/quiz-microsite:latest
+          image: spacedevacr.azurecr.io/quiz-microsite-real:latest
           # resources:
           #   limits:
           #     memory: "128Mi"
