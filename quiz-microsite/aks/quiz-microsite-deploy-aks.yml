@@ -19,10 +19,12 @@ variables:
   tag: "$(Build.BuildNumber)"
   service_connection: ARM_SERVICE_CONNECTION
   kubernetesServiceConnection: "spaceaks"
-  k8sNamespace: "dev"
+  # k8sNamespace: "dev"
 
 stages:
-  - stage: BuildAndDeploy
+  - stage: Dev
+    variables:
+      k8sNamespace: dev
     jobs:
       - job: Build
         steps:
@@ -36,6 +38,59 @@ stages:
                     "CloudInfra": "Azure Kubernetes Service",
                     "DevOpsTool": "ADO",
                     "Environment": "dev",
+                    "InstanceName": "cloud",
+                    "ImageTag": "$(tag)"
+                }]'
+                $json | Out-File $(System.DefaultWorkingDirectory)/quiz-microsite/microsite/src/system/info.json
+              workingDirectory: "$(System.DefaultWorkingDirectory)"
+              pwsh: true # For Linux
+
+          - task: Docker@2
+            name: docker_build_and_push
+            displayName: docker build and push
+            inputs:
+              containerRegistry: $(containerRegistry)
+              repository: $(imageRepository)
+              command: "buildAndPush"
+              Dockerfile: "quiz-microsite/microsite/Dockerfile"
+              tags: |
+                latest
+                $(tag)
+      - job: Deploy
+        dependsOn:
+          - Build
+        steps:
+          - task: KubernetesManifest@0
+            displayName: Deploy to Kubernetes cluster
+            inputs:
+              action: deploy
+              namespace: $(k8sNamespace)
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              manifests: |
+                $(System.DefaultWorkingDirectory)/quiz-microsite/aks/manifests/deployment.yml
+                $(System.DefaultWorkingDirectory)/quiz-microsite/aks/manifests/service.yml
+                $(System.DefaultWorkingDirectory)/quiz-microsite/aks/manifests/service-lb.yml
+              containers: |
+                $(containerRegistry)/$(imageRepository):$(tag)
+
+  - stage: Qa
+    variables:
+      k8sNamespace: qa
+    dependsOn:
+      - Dev
+    jobs:
+      - job: Build
+        steps:
+          - task: PowerShell@2
+            displayName: "Insert System Info"
+            inputs:
+              targetType: "inline"
+              script: |
+                $json='[{
+                    "ApplicationName": "Quiz Microsite",
+                    "CloudInfra": "Azure Kubernetes Service",
+                    "DevOpsTool": "ADO",
+                    "Environment": "qa",
                     "InstanceName": "cloud",
                     "ImageTag": "$(tag)"
                 }]'
