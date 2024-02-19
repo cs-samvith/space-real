@@ -8,7 +8,7 @@ COPY . .
 # Install dependencies (npm ci makes sure the exact versions in the lockfile gets installed)
 RUN npm install
 # Build the app
-RUN npm run build:dev-docker
+RUN npm run build:dev
 
 # Bundle static assets with nginx
 FROM nginx:1.21.0-alpine as production
