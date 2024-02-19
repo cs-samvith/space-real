@@ -29,4 +29,4 @@ stages:
               namespace: $(k8sNamespace)
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               manifests: |
-                $(System.DefaultWorkingDirectory)/cluster-config/manifests/dev/01-namespace.yml
+                $(System.DefaultWorkingDirectory)/cluster-config/aks/manifests/dev/01-namespace.yml
