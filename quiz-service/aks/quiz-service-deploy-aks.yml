@@ -23,6 +23,8 @@ variables:
 
 stages:
   - stage: Dev
+    variables:
+      k8sNamespace: dev
     jobs:
       - job: Build
         steps:
@@ -62,7 +64,7 @@ stages:
             displayName: Deploy db to Kubernetes cluster
             inputs:
               action: deploy
-              namespace: $(k8sNamespace)
+              namespace: ${{variables.k8sNamespace}}
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               manifests: |
                 $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/mysql/01-storage-class.yml
@@ -75,7 +77,7 @@ stages:
             displayName: Deploy file share to Kubernetes cluster
             inputs:
               action: deploy
-              namespace: $(k8sNamespace)
+              namespace: ${{variables.k8sNamespace}}
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               manifests: |
                 $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/filestorage/01-storage-class.yml
@@ -84,7 +86,7 @@ stages:
             displayName: Deploy svc to Kubernetes cluster
             inputs:
               action: deploy
-              namespace: $(k8sNamespace)
+              namespace: ${{variables.k8sNamespace}}
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               manifests: |
                 $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/deployment-with-mysql.yml
@@ -136,7 +138,7 @@ stages:
             displayName: Deploy db to Kubernetes cluster
             inputs:
               action: deploy
-              namespace: $(k8sNamespace)
+              namespace: ${{variables.k8sNamespace}}
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               manifests: |
                 $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/mysql/01-storage-class.yml
@@ -149,7 +151,7 @@ stages:
             displayName: Deploy file share to Kubernetes cluster
             inputs:
               action: deploy
-              namespace: $(k8sNamespace)
+              namespace: ${{variables.k8sNamespace}}
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               manifests: |
                 $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/filestorage/01-storage-class.yml
@@ -158,7 +160,7 @@ stages:
             displayName: Deploy svc to Kubernetes cluster
             inputs:
               action: deploy
-              namespace: $(k8sNamespace)
+              namespace: ${{variables.k8sNamespace}}
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               manifests: |
                 $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/deployment-with-mysql.yml

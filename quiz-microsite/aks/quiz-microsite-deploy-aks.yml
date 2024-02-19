@@ -64,7 +64,7 @@ stages:
             displayName: Deploy to Kubernetes cluster
             inputs:
               action: deploy
-              namespace: $(k8sNamespace)
+              namespace: ${{variables.k8sNamespace}}
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               manifests: |
                 $(System.DefaultWorkingDirectory)/quiz-microsite/aks/manifests/deployment.yml
@@ -117,7 +117,7 @@ stages:
             displayName: Deploy to Kubernetes cluster
             inputs:
               action: deploy
-              namespace: $(k8sNamespace)
+              namespace: ${{variables.k8sNamespace}}
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               manifests: |
                 $(System.DefaultWorkingDirectory)/quiz-microsite/aks/manifests/deployment.yml
