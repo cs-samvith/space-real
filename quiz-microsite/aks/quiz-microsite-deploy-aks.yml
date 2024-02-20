@@ -96,7 +96,7 @@ stages:
                     "InstanceName": "cloud",
                     "ImageTag": "$(imageRepository):${{variables.tag}}"
                 }]'
-                $json | Out-File $(System.DefaultWorkingDirectory)/quiz-microsite/microsite/src/system/info.json
+                $json | Out-File -Force $(System.DefaultWorkingDirectory)/quiz-microsite/microsite/src/system/info.json
               workingDirectory: "$(System.DefaultWorkingDirectory)"
               pwsh: true # For Linux
 
