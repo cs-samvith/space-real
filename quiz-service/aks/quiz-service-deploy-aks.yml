@@ -16,7 +16,7 @@ pool:
 variables:
   imageRepository: "quiz-service-real"
   containerRegistry: spacedevacr.azurecr.io
-  tag: "$(Build.BuildNumber)"
+  # tag: "$(Build.BuildNumber)"
   service_connection: ARM_SERVICE_CONNECTION
   kubernetesServiceConnection: "spaceaks"
   # k8sNamespace: "dev"
@@ -25,6 +25,7 @@ stages:
   - stage: Dev
     variables:
       k8sNamespace: dev
+      tag: "$(Build.BuildNumber)-dev"
     jobs:
       - job: Build
         steps:
@@ -39,7 +40,7 @@ stages:
                     "DevOpsTool": "ADO",
                     "Environment": "dev",
                     "InstanceName": "cloud",
-                    "ImageTag": "$(imageRepository):$(tag)"
+                    "ImageTag": "$(imageRepository):${{variables.tag}}"
                 }]'
                 $json | Out-File $(System.DefaultWorkingDirectory)/quiz-service/src/Quiz.Service/System/info.json
               workingDirectory: "$(System.DefaultWorkingDirectory)"
@@ -55,7 +56,7 @@ stages:
               Dockerfile: "quiz-service/src/Quiz.Service/Dockerfile"
               tags: |
                 latest
-                $(tag)
+                ${{variables.tag}}
       - job: Deploy
         dependsOn:
           - Build
@@ -92,13 +93,14 @@ stages:
                 $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/deployment-with-mysql.yml
                 $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/service.yml
               containers: |
-                $(containerRegistry)/$(imageRepository):$(tag)
+                $(containerRegistry)/$(imageRepository):${{variables.tag}}
 
   - stage: Qa
     dependsOn:
       - Dev
     variables:
       k8sNamespace: qa
+      tag: "$(Build.BuildNumber)-qa"
     jobs:
       - job: Build
         steps:
@@ -111,9 +113,9 @@ stages:
                     "ApplicationName": "Quiz Service",
                     "CloudInfra": "Azure Kubernetes Service",
                     "DevOpsTool": "ADO",
-                    "Environment": "dev",
+                    "Environment": "qa",
                     "InstanceName": "cloud",
-                    "ImageTag": "$(imageRepository):$(tag)"
+                    "ImageTag": "$(imageRepository):${{variables.tag}}"
                 }]'
                 $json | Out-File $(System.DefaultWorkingDirectory)/quiz-service/src/Quiz.Service/System/info.json
               workingDirectory: "$(System.DefaultWorkingDirectory)"
@@ -129,7 +131,7 @@ stages:
               Dockerfile: "quiz-service/src/Quiz.Service/Dockerfile"
               tags: |
                 latest
-                $(tag)
+                ${{variables.tag}}
       - job: Deploy
         dependsOn:
           - Build
@@ -166,4 +168,4 @@ stages:
                 $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/deployment-with-mysql.yml
                 $(System.DefaultWorkingDirectory)/quiz-service/aks/manifests/service.yml
               containers: |
-                $(containerRegistry)/$(imageRepository):$(tag)
+                $(containerRegistry)/$(imageRepository):${{variables.tag}}
