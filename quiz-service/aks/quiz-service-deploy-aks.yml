@@ -35,9 +35,9 @@ stages:
               targetType: "inline"
               script: |
                 $json='[{
-                    "ApplicationName": "Quiz Service",
-                    "CloudInfra": "Azure Kubernetes Service",
-                    "DevOpsTool": "ADO",
+                    "ApplicationName": "Service",
+                    "CloudInfra": "azure kubernetes service",
+                    "DevOpsTool": "azure devOps",
                     "Environment": "dev",
                     "InstanceName": "cloud",
                     "ImageTag": "$(imageRepository):${{variables.tag}}"
@@ -110,9 +110,9 @@ stages:
               targetType: "inline"
               script: |
                 $json='[{
-                    "ApplicationName": "Quiz Service",
-                    "CloudInfra": "Azure Kubernetes Service",
-                    "DevOpsTool": "ADO",
+                    "ApplicationName": "Service",
+                    "CloudInfra": "azure kubernetes service",
+                    "DevOpsTool": "azure devOps",
                     "Environment": "qa",
                     "InstanceName": "cloud",
                     "ImageTag": "$(imageRepository):${{variables.tag}}"
