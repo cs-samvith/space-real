@@ -94,7 +94,7 @@ stages:
                     "DevOpsTool": "ADO",
                     "Environment": "qa",
                     "InstanceName": "cloud",
-                    "ImageTag":  "$(imageRepository):${{variables.tag}}"
+                    "ImageTag": "$(imageRepository):${{variables.tag}}"
                 }]'
                 $json | Out-File $(System.DefaultWorkingDirectory)/quiz-microsite/microsite/src/system/info.json
               workingDirectory: "$(System.DefaultWorkingDirectory)"
