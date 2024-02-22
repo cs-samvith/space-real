@@ -84,33 +84,54 @@ stages:
 
           - bash: |
               pwd 
-              cd $(System.DefaultWorkingDirectory)/quiz-microsite/chart
+              cd $(System.DefaultWorkingDirectory)
               ls
 
-          - bash: |
-                # still experimental in Helm v3
-                export HELM_EXPERIMENTAL_OCI=1
+          - task: HelmDeploy@0
+            displayName: Helm upgrade
+            inputs:
+              connectionType: 'Kubernetes Service Connection'
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              command: upgrade
+              chartType: filepath
+              chartPath: $(System.DefaultWorkingDirectory)/chart-0.1.0.tgz
+              releaseName: helmquizmicrosite
+              install: true
+              waitForExecution: false
 
-                # Helm needs to login to ACR    
-                echo '$(registryPassword)' | helm registry login $(containerRegistry) \
-                  --username $(registryLogin) \
-                  --password-stdin
 
-                # Save the Helm chart locally - version tag comes from chart version
-                # A local save is required before you can push the chart to ACR
-                chartVersion=`helm chart save space/quiz-microsite-real $(containerRegistry)/helm/$(imageRepository) | grep version | awk -F ': ' '{print $2}'`
+          # - bash: |
+          #     pwd 
+          #     cd $(System.DefaultWorkingDirectory)/quiz-microsite/chart
+          #     ls
 
-                # Push the chart
-                # Note: if a chart with the same version already exists, it will be overwritten
-                #       this might not be the behavior you want
-                helm chart push $(containerRegistry)/helm/$(imageRepository):$chartVersion
-                helm push 
+          # - bash: |
+          #       # still experimental in Helm v3
+          #       export HELM_EXPERIMENTAL_OCI=1
 
-                # save the Helm chart version and image tag to a JSON file to publish as an artifact
-                # echo $(jq -n --arg chartVersion "$chartVersion" --arg imgVersion "$(imageTag)" '{chartVersion: $chartVersion, imgVersion: $imgVersion}') > $(build.artifactStagingDirectory)/variables.json
-            failOnStderr: true
-            name: helmPush
-            displayName: 'helm chart push'
+          #       # Helm needs to login to ACR    
+          #       echo '$(registryPassword)' | helm registry login $(containerRegistry) \
+          #         --username $(registryLogin) \
+          #         --password-stdin
+
+          #       # Save the Helm chart locally - version tag comes from chart version
+          #       # A local save is required before you can push the chart to ACR
+          #       chartVersion=`helm chart save space/quiz-microsite-real $(containerRegistry)/helm/$(imageRepository) | grep version | awk -F ': ' '{print $2}'`
+
+          #       # Push the chart
+          #       # Note: if a chart with the same version already exists, it will be overwritten
+          #       #       this might not be the behavior you want
+          #       helm chart push $(containerRegistry)/helm/$(imageRepository):$chartVersion
+          #       helm push 
+
+          #       # save the Helm chart version and image tag to a JSON file to publish as an artifact
+          #       # echo $(jq -n --arg chartVersion "$chartVersion" --arg imgVersion "$(imageTag)" '{chartVersion: $chartVersion, imgVersion: $imgVersion}') > $(build.artifactStagingDirectory)/variables.json
+          #   failOnStderr: true
+          #   name: helmPush
+          #   displayName: 'helm chart push'
+        
+        
+        
           # - publish: $(build.artifactStagingDirectory)
           #     artifact: build-artifact
 
