@@ -83,6 +83,11 @@ stages:
               helm package --app-version ${{variables.tag}} $(System.DefaultWorkingDirectory)/quiz-microsite/chart
 
           - bash: |
+              pwd 
+              cd $(System.DefaultWorkingDirectory)/quiz-microsite/chart
+              ls
+
+          - bash: |
                 # still experimental in Helm v3
                 export HELM_EXPERIMENTAL_OCI=1
 
@@ -99,6 +104,7 @@ stages:
                 # Note: if a chart with the same version already exists, it will be overwritten
                 #       this might not be the behavior you want
                 helm chart push $(containerRegistry)/helm/$(imageRepository):$chartVersion
+                helm push 
 
                 # save the Helm chart version and image tag to a JSON file to publish as an artifact
                 # echo $(jq -n --arg chartVersion "$chartVersion" --arg imgVersion "$(imageTag)" '{chartVersion: $chartVersion, imgVersion: $imgVersion}') > $(build.artifactStagingDirectory)/variables.json
