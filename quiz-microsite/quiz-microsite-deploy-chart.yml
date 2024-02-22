@@ -94,10 +94,11 @@ stages:
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               command: upgrade
               chartType: filepath
-              chartPath: $(System.DefaultWorkingDirectory)/chart-0.1.0.tgz
-              releaseName: helmquizmicrosite
+              chartPath: $(System.DefaultWorkingDirectory)/quiz-microsite-chart-0.1.0.tgz
+              releaseName: helm-quiz-microsite
               install: true
               waitForExecution: false
+              # namespace: dev
 
 
           # - bash: |
