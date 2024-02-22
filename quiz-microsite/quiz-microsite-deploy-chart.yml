@@ -1,0 +1,164 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - /quiz-microsite/src/*
+      - /quiz-microsite/aks/*
+
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  imageRepository: "quiz-microsite-real"
+  containerRegistry: spacedevacr.azurecr.io
+  # tag: "$(Build.BuildNumber)"
+  service_connection: ARM_SERVICE_CONNECTION
+  kubernetesServiceConnection: "spaceaks"
+  chartPath: $(System.DefaultWorkingDirectory)/quiz-microsite/chart
+  # k8sNamespace: "dev"
+  registryLogin: 'spacedevacr'
+  projectName: 'quiz-microsite'
+
+# 1) Code build 
+# 2) Docker build 
+# 3) Docker push 
+# 4) Chart build 
+# 5) Chart push 
+
+
+stages:
+  - stage: Dev
+    variables:
+      k8sNamespace: dev
+      tag: "$(Build.BuildNumber)-dev"
+    jobs:
+      - job: Build
+        steps:
+          - task: PowerShell@2
+            displayName: "Insert System Info"
+            inputs:
+              targetType: "inline"
+              script: |
+                $json='[{
+                    "ApplicationName": "Microsite",
+                    "CloudInfra": "azure kubernetes service",
+                    "DevOpsTool": "azure devOps",
+                    "Environment": "dev",
+                    "InstanceName": "cloud",
+                    "ImageTag": "$(imageRepository):${{variables.tag}}"
+                }]'
+                $json | Out-File $(System.DefaultWorkingDirectory)/quiz-microsite/microsite/src/system/info.json
+              workingDirectory: "$(System.DefaultWorkingDirectory)"
+              pwsh: true # For Linux
+
+          - task: Docker@2
+            name: docker_build_and_push
+            displayName: docker build and push
+            inputs:
+              containerRegistry: $(containerRegistry)
+              repository: $(imageRepository)
+              command: "buildAndPush"
+              Dockerfile: "quiz-microsite/microsite/Dockerfile"
+              tags: |
+                latest
+                ${{variables.tag}}
+
+          - task: HelmInstaller@0
+            inputs:
+              helmVersion: '3.9.4'
+              installKubectl: true
+
+          - bash: |
+              # run helm lint
+              helm lint $(System.DefaultWorkingDirectory)/quiz-microsite/chart
+            displayName: 'helm lint'
+            failOnStderr: true
+
+          - bash: |
+              helm package --app-version ${{variables.tag}} $(System.DefaultWorkingDirectory)/quiz-microsite/chart
+
+          - bash: |
+                # still experimental in Helm v3
+                export HELM_EXPERIMENTAL_OCI=1
+
+                # Helm needs to login to ACR    
+                echo '$(registryPassword)' | helm registry login $(containerRegistry) \
+                  --username $(registryLogin) \
+                  --password-stdin
+
+                # Save the Helm chart locally - version tag comes from chart version
+                # A local save is required before you can push the chart to ACR
+                chartVersion=`helm chart save charts/go-template $(registryServerName)/helm/$(imageRepository) | grep version | awk -F ': ' '{print $2}'`
+
+                # Push the chart
+                # Note: if a chart with the same version already exists, it will be overwritten
+                #       this might not be the behavior you want
+                helm chart push $(registryServerName)/helm/$(imageRepository):$chartVersion
+
+                # save the Helm chart version and image tag to a JSON file to publish as an artifact
+                # echo $(jq -n --arg chartVersion "$chartVersion" --arg imgVersion "$(imageTag)" '{chartVersion: $chartVersion, imgVersion: $imgVersion}') > $(build.artifactStagingDirectory)/variables.json
+            failOnStderr: true
+            name: helmPush
+            displayName: 'helm chart push'
+          # - publish: $(build.artifactStagingDirectory)
+          #     artifact: build-artifact
+
+
+          # - task: HelmDeploy@0
+          #   inputs:
+          #     command: package
+          #     chartPath: $(chartPath)
+          #     chartVersion: $(Build.SourceBranchName)
+          #     arguments: '--app-version $(Build.SourceBranchName)'
+          #   displayName: 'helm package'
+          #   failOnStderr: true
+
+      # - job: Deploy
+      #   dependsOn:
+      #     - Build
+      #   steps:
+      #     - task: KubernetesManifest@0
+      #       displayName: Deploy to Kubernetes cluster
+      #       inputs:
+      #         action: deploy
+      #         namespace: ${{variables.k8sNamespace}}
+      #         kubernetesServiceConnection: $(kubernetesServiceConnection)
+      #         manifests: |
+      #           $(System.DefaultWorkingDirectory)/quiz-microsite/aks/manifests/deployment.yml
+      #           $(System.DefaultWorkingDirectory)/quiz-microsite/aks/manifests/service.yml
+      #           $(System.DefaultWorkingDirectory)/quiz-microsite/aks/manifests/service-lb.yml
+      #         containers: |
+      #           $(containerRegistry)/$(imageRepository):${{variables.tag}}
+
+
+
+bash: |
+    # still experimental in Helm v3
+    export HELM_EXPERIMENTAL_OCI=1
+
+    # Helm needs to login to ACR    
+    echo '$(registryPassword)' | helm registry login $(registryServerName) \
+      --username $(registryLogin) \
+      --password-stdin
+
+    # Save the Helm chart locally - version tag comes from chart version
+    # A local save is required before you can push the chart to ACR
+    chartVersion=`helm chart save charts/go-template $(registryServerName)/helm/$(projectName) | grep version | awk -F ': ' '{print $2}'`
+
+    # Push the chart
+    # Note: if a chart with the same version already exists, it will be overwritten
+    #       this might not be the behavior you want
+    helm chart push $(registryServerName)/helm/$(projectName):$chartVersion
+
+    # save the Helm chart version and image tag to a JSON file to publish as an artifact
+    echo $(jq -n --arg chartVersion "$chartVersion" --arg imgVersion "$(imageTag)" '{chartVersion: $chartVersion, imgVersion: $imgVersion}') > $(build.artifactStagingDirectory)/variables.json
+  failOnStderr: true
+  name: helmPush
+  displayName: 'helm chart push'
+- publish: $(build.artifactStagingDirectory)
+  artifact: build-artifact
