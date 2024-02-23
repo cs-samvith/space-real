@@ -16,22 +16,11 @@ pool:
 variables:
   imageRepository: "quiz-microsite-real"
   containerRegistry: spacedevacr.azurecr.io
-  # tag: "$(Build.BuildNumber)"
   service_connection: ARM_SERVICE_CONNECTION
   kubernetesServiceConnection: "spaceaks"
   chartPath: $(System.DefaultWorkingDirectory)/quiz-microsite/chart
-  # k8sNamespace: "dev"
   registryLogin: "spacedevacr"
-  projectName: "quiz-microsite"
   chartName: "quiz-microsite-chart"
-  acrUserId:
-  acrPassword:
-
-# 1) Code build
-# 2) Docker build
-# 3) Docker push
-# 4) Chart build
-# 5) Chart push
 
 stages:
   - stage: Dev
@@ -81,22 +70,20 @@ stages:
             displayName: "helm lint"
             failOnStderr: true
 
-
-
           - task: HelmDeploy@0
             inputs:
               command: "package"
               chartPath: "$(System.DefaultWorkingDirectory)/quiz-microsite/chart"
               chartVersion: ${{variables.tag}}
-              arguments: --app-version '1.17.18'
+              arguments: --app-version ${{variables.tag}}
 
           - bash: |
               pwd 
               cd $(Build.ArtifactStagingDirectory)
               ls
-              helm registry login $(containerRegistry) \
+              echo '$(ACR_PASSWORD)' | helm registry login $(containerRegistry) \
               --username $(ACR_USER_NAME) \
-              --password $(ACR_PASSWORD)
+              --password-stdin
               helm push $(chartName)-${{variables.tag}}.tgz oci://$(containerRegistry)/space
 
           - task: HelmDeploy@0
@@ -112,6 +99,8 @@ stages:
               waitForExecution: false
               overrideValues: image.tag=${{variables.tag}}
               namespace: dev
+
+
 
           # - bash: |
           #     pwd
@@ -197,6 +186,5 @@ stages:
 # - publish: $(build.artifactStagingDirectory)
 #   artifact: build-artifact
 
-
-          # - bash: |
-          #     helm package --app-version ${{variables.tag}} $(System.DefaultWorkingDirectory)/quiz-microsite/chart
+# - bash: |
+#     helm package --app-version ${{variables.tag}} $(System.DefaultWorkingDirectory)/quiz-microsite/chart
