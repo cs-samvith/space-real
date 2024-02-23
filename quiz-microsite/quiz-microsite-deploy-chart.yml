@@ -110,7 +110,7 @@ stages:
               releaseName: helm-quiz-microsite
               install: true
               waitForExecution: false
-              # namespace: dev
+              namespace: dev
 
           # - bash: |
           #     pwd
