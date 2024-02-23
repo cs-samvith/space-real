@@ -23,6 +23,9 @@ variables:
   # k8sNamespace: "dev"
   registryLogin: "spacedevacr"
   projectName: "quiz-microsite"
+  chartName: "quiz-microsite-chart"
+  acrUserId:
+  acrPassword:
 
 # 1) Code build
 # 2) Docker build
@@ -89,20 +92,24 @@ stages:
 
           - bash: |
               pwd 
-              cd $(System.DefaultWorkingDirectory)
+              cd $(Build.ArtifactStagingDirectory)
               ls
+              helm registry login $containerRegistry \
+              --username $ACR_USER_NAME \
+              --password $ACR_PASSWORD
+              helm push $(chartName)-${{variables.tag}}.tgz oci://$containerRegistry/space
 
-          # - task: HelmDeploy@0
-          #   displayName: Helm upgrade
-          #   inputs:
-          #     connectionType: "Kubernetes Service Connection"
-          #     kubernetesServiceConnection: $(kubernetesServiceConnection)
-          #     command: upgrade
-          #     chartType: filepath
-          #     chartPath: $(System.DefaultWorkingDirectory)/quiz-microsite-chart-0.1.0.tgz
-          #     releaseName: helm-quiz-microsite
-          #     install: true
-          #     waitForExecution: false
+          - task: HelmDeploy@0
+            displayName: Helm upgrade
+            inputs:
+              connectionType: "Kubernetes Service Connection"
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              command: upgrade
+              chartType: filepath
+              chartPath: $(Build.ArtifactStagingDirectory)/$(chartName)-${{variables.tag}}.tgz
+              releaseName: helm-quiz-microsite
+              install: true
+              waitForExecution: false
               # namespace: dev
 
           # - bash: |
