@@ -89,6 +89,7 @@ stages:
               command: "package"
               chartPath: "$(System.DefaultWorkingDirectory)/quiz-microsite/chart"
               chartVersion: ${{variables.tag}}
+              arguments: --app-version '1.17.18'
 
           - bash: |
               pwd 
