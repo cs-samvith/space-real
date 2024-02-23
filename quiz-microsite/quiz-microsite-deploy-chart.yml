@@ -94,9 +94,9 @@ stages:
               pwd 
               cd $(Build.ArtifactStagingDirectory)
               ls
-              helm registry login $containerRegistry \
-              --username $ACR_USER_NAME \
-              --password $ACR_PASSWORD
+              helm registry login $(containerRegistry) \
+              --username $(ACR_USER_NAME) \
+              --password $(ACR_PASSWORD)
               helm push $(chartName)-${{variables.tag}}.tgz oci://$containerRegistry/space
 
           - task: HelmDeploy@0
