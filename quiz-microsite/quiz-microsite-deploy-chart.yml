@@ -97,7 +97,7 @@ stages:
               helm registry login $(containerRegistry) \
               --username $(ACR_USER_NAME) \
               --password $(ACR_PASSWORD)
-              helm push $(chartName)-${{variables.tag}}.tgz oci://$containerRegistry/space
+              helm push $(chartName)-${{variables.tag}}.tgz oci://$(containerRegistry)/space
 
           - task: HelmDeploy@0
             displayName: Helm upgrade
