@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      initContainers:
+        - name: init-db
+          image: busybox:1.31
+          command:
+            [
+              "sh",
+              "-c",
+              'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z {{ .Values.mysql.name }}  3306; do sleep 1; printf "-"; done; echo -e "  >> MySQL DB Server has started";',
+            ]
+      containers:
+        - name: quiz-service
+          image: spacedevacr.azurecr.io/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: DB_HOSTNAME
+              value: "mysql"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: "quizdb"
+            - name: DB_USERNAME
+              value: "root"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mysql.name }}-db-password
+                  key: db-password
+          volumeMounts:
+            - name: my-azurefile-volume
+              mountPath: "/home"
+      volumes:
+        - name: my-azurefile-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.mysql.name }}-azurefile-pvc
+# TODO - How to dynamically pass tag
