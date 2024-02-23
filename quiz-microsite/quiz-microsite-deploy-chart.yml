@@ -21,12 +21,10 @@ variables:
   chartPath: $(System.DefaultWorkingDirectory)/quiz-microsite/chart
   registryLogin: "spacedevacr"
   chartName: "quiz-microsite-chart"
+  tag: "$(Build.BuildNumber)"
 
 stages:
-  - stage: Dev
-    variables:
-      k8sNamespace: dev
-      tag: "$(Build.BuildNumber)-dev"
+  - stage: Build
     jobs:
       - job: Build
         steps:
@@ -37,11 +35,11 @@ stages:
               script: |
                 $json='[{
                     "ApplicationName": "Microsite",
-                    "CloudInfra": "azure kubernetes service",
-                    "DevOpsTool": "azure devOps",
+                    "CloudInfra": "aks",
+                    "DevOpsTool": "devOps - helm charts",
                     "Environment": "dev",
                     "InstanceName": "cloud",
-                    "ImageTag": "$(imageRepository):${{variables.tag}}"
+                    "ImageTag": "$(imageRepository):$(tag)"
                 }]'
                 $json | Out-File $(System.DefaultWorkingDirectory)/quiz-microsite/microsite/src/system/info.json
               workingDirectory: "$(System.DefaultWorkingDirectory)"
@@ -57,7 +55,7 @@ stages:
               Dockerfile: "quiz-microsite/microsite/Dockerfile"
               tags: |
                 latest
-                ${{variables.tag}}
+                $(tag)
 
           - task: HelmInstaller@0
             inputs:
@@ -74,8 +72,8 @@ stages:
             inputs:
               command: "package"
               chartPath: "$(System.DefaultWorkingDirectory)/quiz-microsite/chart"
-              chartVersion: ${{variables.tag}}
-              arguments: --app-version ${{variables.tag}}
+              chartVersion: $(tag)
+              arguments: --app-version $(tag)
 
           - bash: |
               pwd 
@@ -84,23 +82,57 @@ stages:
               echo '$(ACR_PASSWORD)' | helm registry login $(containerRegistry) \
               --username $(ACR_USER_NAME) \
               --password-stdin
-              helm push $(chartName)-${{variables.tag}}.tgz oci://$(containerRegistry)/space
+              helm push $(chartName)-$(tag).tgz oci://$(containerRegistry)/space
 
+          - task: PublishBuildArtifacts@1
+            displayName: "Publish client artifacts"
+            inputs:
+              pathToPublish: $(Build.ArtifactStagingDirectory)/$(chartName)-$(tag).tgz
+              artifactName: Chart
+
+          # - task: HelmDeploy@0
+          #   displayName: Helm upgrade
+          #   inputs:
+          #     connectionType: "Kubernetes Service Connection"
+          #     kubernetesServiceConnection: $(kubernetesServiceConnection)
+          #     command: upgrade
+          #     chartType: filepath
+          #     chartPath: $(Build.ArtifactStagingDirectory)/$(chartName)-$(tag).tgz
+          #     releaseName: helm-quiz-microsite
+          #     install: true
+          #     waitForExecution: false
+          #     overrideValues: image.tag=$(tag)
+          #     namespace: dev
+
+  - stage: Dev
+    dependsOn:
+      - build
+    jobs:
+      - job: Deploy
+        displayName: "Deploy Dev"
+        steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: "download chart artifacts"
+            inputs:
+              artifact: Chart
+              path: "$(System.ArtifactsDirectory)/chart"
+          - bash: |
+              pwd
+              cd $(System.ArtifactsDirectory)/chart
+              ls
           - task: HelmDeploy@0
-            displayName: Helm upgrade
+            displayName: Helm Install Upgrade
             inputs:
               connectionType: "Kubernetes Service Connection"
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               command: upgrade
               chartType: filepath
-              chartPath: $(Build.ArtifactStagingDirectory)/$(chartName)-${{variables.tag}}.tgz
+              chartPath: $(System.ArtifactsDirectory)/chart/$(chartName)-$(tag).tgz
               releaseName: helm-quiz-microsite
               install: true
               waitForExecution: false
-              overrideValues: image.tag=${{variables.tag}}
+              overrideValues: image.tag=$(tag)
               namespace: dev
-
-
 
           # - bash: |
           #     pwd
@@ -159,7 +191,7 @@ stages:
       #           $(System.DefaultWorkingDirectory)/quiz-microsite/aks/manifests/service.yml
       #           $(System.DefaultWorkingDirectory)/quiz-microsite/aks/manifests/service-lb.yml
       #         containers: |
-      #           $(containerRegistry)/$(imageRepository):${{variables.tag}}
+      #           $(containerRegistry)/$(imageRepository):$(tag)
 # bash: |
 #     # still experimental in Helm v3
 #     export HELM_EXPERIMENTAL_OCI=1
@@ -187,4 +219,4 @@ stages:
 #   artifact: build-artifact
 
 # - bash: |
-#     helm package --app-version ${{variables.tag}} $(System.DefaultWorkingDirectory)/quiz-microsite/chart
+#     helm package --app-version $(tag) $(System.DefaultWorkingDirectory)/quiz-microsite/chart
