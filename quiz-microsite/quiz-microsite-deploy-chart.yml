@@ -41,34 +41,34 @@ stages:
     jobs:
       - job: Build
         steps:
-          # - task: PowerShell@2
-          #   displayName: "Insert System Info"
-          #   inputs:
-          #     targetType: "inline"
-          #     script: |
-          #       $json='[{
-          #           "ApplicationName": "Microsite",
-          #           "CloudInfra": "azure kubernetes service",
-          #           "DevOpsTool": "azure devOps",
-          #           "Environment": "dev",
-          #           "InstanceName": "cloud",
-          #           "ImageTag": "$(imageRepository):${{variables.tag}}"
-          #       }]'
-          #       $json | Out-File $(System.DefaultWorkingDirectory)/quiz-microsite/microsite/src/system/info.json
-          #     workingDirectory: "$(System.DefaultWorkingDirectory)"
-          #     pwsh: true # For Linux
+          - task: PowerShell@2
+            displayName: "Insert System Info"
+            inputs:
+              targetType: "inline"
+              script: |
+                $json='[{
+                    "ApplicationName": "Microsite",
+                    "CloudInfra": "azure kubernetes service",
+                    "DevOpsTool": "azure devOps",
+                    "Environment": "dev",
+                    "InstanceName": "cloud",
+                    "ImageTag": "$(imageRepository):${{variables.tag}}"
+                }]'
+                $json | Out-File $(System.DefaultWorkingDirectory)/quiz-microsite/microsite/src/system/info.json
+              workingDirectory: "$(System.DefaultWorkingDirectory)"
+              pwsh: true # For Linux
 
-          # - task: Docker@2
-          #   name: docker_build_and_push
-          #   displayName: docker build and push
-          #   inputs:
-          #     containerRegistry: $(containerRegistry)
-          #     repository: $(imageRepository)
-          #     command: "buildAndPush"
-          #     Dockerfile: "quiz-microsite/microsite/Dockerfile"
-          #     tags: |
-          #       latest
-          #       ${{variables.tag}}
+          - task: Docker@2
+            name: docker_build_and_push
+            displayName: docker build and push
+            inputs:
+              containerRegistry: $(containerRegistry)
+              repository: $(imageRepository)
+              command: "buildAndPush"
+              Dockerfile: "quiz-microsite/microsite/Dockerfile"
+              tags: |
+                latest
+                ${{variables.tag}}
 
           - task: HelmInstaller@0
             inputs:
@@ -81,8 +81,7 @@ stages:
             displayName: "helm lint"
             failOnStderr: true
 
-          # - bash: |
-          #     helm package --app-version ${{variables.tag}} $(System.DefaultWorkingDirectory)/quiz-microsite/chart
+
 
           - task: HelmDeploy@0
             inputs:
@@ -111,6 +110,7 @@ stages:
               releaseName: helm-quiz-microsite
               install: true
               waitForExecution: false
+              overrideValues: image.tag=${{variables.tag}}
               namespace: dev
 
           # - bash: |
@@ -196,3 +196,7 @@ stages:
 #   displayName: 'helm chart push'
 # - publish: $(build.artifactStagingDirectory)
 #   artifact: build-artifact
+
+
+          # - bash: |
+          #     helm package --app-version ${{variables.tag}} $(System.DefaultWorkingDirectory)/quiz-microsite/chart
