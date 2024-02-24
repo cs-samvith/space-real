@@ -5,7 +5,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: {{ .Values.mysql.name }}-azurefile-sc
+  storageClassName: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-azurefile-sc
   resources:
     requests:
       storage: 1Gi
