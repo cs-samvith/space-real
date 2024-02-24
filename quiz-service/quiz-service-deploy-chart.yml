@@ -169,7 +169,6 @@ stages:
               install: true
               waitForExecution: false
               overrideValues: image.tag=$(tag)
-              arguments: --create-namespace
               namespace: qa
 
           # - bash: |
