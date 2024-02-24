@@ -92,5 +92,5 @@ stages:
               releaseName: helm-cluster-config
               install: true
               waitForExecution: false
-              overrideValues: namespace.name=dev meta.helm.sh/release-namespace=dev
-              namespace: dev
+              overrideValues: namespace.name=dev
+       
