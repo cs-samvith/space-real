@@ -23,7 +23,7 @@ variables:
   - name: chartPath
     value: $(System.DefaultWorkingDirectory)/cluster-config/chart
   - name: chartName
-    value: "cluster-config-chart"
+    value: "space-chart"
   - name: tag
     value: "$(Build.BuildNumber)"
 
