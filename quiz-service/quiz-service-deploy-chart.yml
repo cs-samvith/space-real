@@ -14,14 +14,21 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  imageRepository: "quiz-service-real"
-  containerRegistry: spacedevacr.azurecr.io
-  service_connection: ARM_SERVICE_CONNECTION
-  kubernetesServiceConnection: "spaceaks"
-  chartPath: $(System.DefaultWorkingDirectory)/quiz-service/chart
-  registryLogin: "spacedevacr"
-  chartName: "quiz-service-chart"
-  tag: "$(Build.BuildNumber)"
+  - group: acr
+  - name: containerRegistry
+    value: spacedevacr.azurecr.io
+  - name: service_connection
+    value: ARM_SERVICE_CONNECTION
+  - name: kubernetesServiceConnection
+    value: "spaceaks"
+  - name: chartPath
+    value: $(System.DefaultWorkingDirectory)/quiz-service/chart
+  - name: chartName
+    value: "quiz-service-chart"
+  - name: tag
+    value: "$(Build.BuildNumber)"
+  - name: imageRepository
+    value: "quiz-service-real"
 
 stages:
   - stage: Build

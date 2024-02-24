@@ -13,12 +13,19 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  containerRegistry: spacedevacr.azurecr.io
-  service_connection: ARM_SERVICE_CONNECTION
-  kubernetesServiceConnection: "spaceaks"
-  chartPath: $(System.DefaultWorkingDirectory)/cluster-config/chart
-  chartName: "cluster-config-chart"
-  tag: "$(Build.BuildNumber)"
+  - group: acr
+  - name: containerRegistry
+    value: spacedevacr.azurecr.io
+  - name: service_connection
+    value: ARM_SERVICE_CONNECTION
+  - name: kubernetesServiceConnection
+    value: "spaceaks"
+  - name: chartPath
+    value: $(System.DefaultWorkingDirectory)/cluster-config/chart
+  - name: chartName
+    value: "cluster-config-chart"
+  - name: tag
+    value: "$(Build.BuildNumber)"
 
 stages:
   - stage: Build

@@ -14,14 +14,21 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  imageRepository: "quiz-microsite-real"
-  containerRegistry: spacedevacr.azurecr.io
-  service_connection: ARM_SERVICE_CONNECTION
-  kubernetesServiceConnection: "spaceaks"
-  chartPath: $(System.DefaultWorkingDirectory)/quiz-microsite/chart
-  registryLogin: "spacedevacr"
-  chartName: "quiz-microsite-chart"
-  tag: "$(Build.BuildNumber)"
+  - group: acr
+  - name: containerRegistry
+    value: spacedevacr.azurecr.io
+  - name: service_connection
+    value: ARM_SERVICE_CONNECTION
+  - name: kubernetesServiceConnection
+    value: "spaceaks"
+  - name: chartPath
+    value: $(System.DefaultWorkingDirectory)/quiz-microsite/chart
+  - name: chartName
+    value: "quiz-microsite-chart"
+  - name: tag
+    value: "$(Build.BuildNumber)"
+  - name: imageRepository
+    value: "quiz-microsite-real"
 
 stages:
   - stage: Build
