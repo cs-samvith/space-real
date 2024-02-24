@@ -141,35 +141,35 @@ stages:
               overrideValues: image.tag=$(tag)
               namespace: dev
 
-  - stage: Qa
-    dependsOn:
-      - Dev
-    jobs:
-      - job: Deploy
-        displayName: "Deploy Qa"
-        steps:
-          - task: DownloadPipelineArtifact@2
-            displayName: "download chart artifacts"
-            inputs:
-              artifact: Chart
-              path: "$(System.ArtifactsDirectory)/chart"
-          - bash: |
-              pwd
-              cd $(System.ArtifactsDirectory)/chart
-              ls
-          - task: HelmDeploy@0
-            displayName: Helm Install Upgrade
-            inputs:
-              connectionType: "Kubernetes Service Connection"
-              kubernetesServiceConnection: $(kubernetesServiceConnection)
-              command: upgrade
-              chartType: filepath
-              chartPath: $(System.ArtifactsDirectory)/chart/$(chartName)-$(tag).tgz
-              releaseName: helm-quiz-service
-              install: true
-              waitForExecution: false
-              overrideValues: image.tag=$(tag)
-              namespace: qa
+  # - stage: Qa
+  #   dependsOn:
+  #     - Dev
+  #   jobs:
+  #     - job: Deploy
+  #       displayName: "Deploy Qa"
+  #       steps:
+  #         - task: DownloadPipelineArtifact@2
+  #           displayName: "download chart artifacts"
+  #           inputs:
+  #             artifact: Chart
+  #             path: "$(System.ArtifactsDirectory)/chart"
+  #         - bash: |
+  #             pwd
+  #             cd $(System.ArtifactsDirectory)/chart
+  #             ls
+  #         - task: HelmDeploy@0
+  #           displayName: Helm Install Upgrade
+  #           inputs:
+  #             connectionType: "Kubernetes Service Connection"
+  #             kubernetesServiceConnection: $(kubernetesServiceConnection)
+  #             command: upgrade
+  #             chartType: filepath
+  #             chartPath: $(System.ArtifactsDirectory)/chart/$(chartName)-$(tag).tgz
+  #             releaseName: helm-quiz-service
+  #             install: true
+  #             waitForExecution: false
+  #             overrideValues: image.tag=$(tag)
+  #             namespace: qa
 
           # - bash: |
           #     pwd

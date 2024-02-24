@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.mysql.name }}
+  name: {{ .Release.Namespace }}-{{ .Values.mysql.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.mysql.name }}
+      app: {{ .Release.Namespace }}-{{ .Values.mysql.name }}
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: {{ .Values.mysql.name }}
+        app: {{ .Release.Namespace }}-{{ .Values.mysql.name }}
     spec:
       containers:
         - name: {{ .Values.mysql.name }}

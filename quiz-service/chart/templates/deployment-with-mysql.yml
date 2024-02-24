@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ .Release.Namespace }}-{{ .Release.Name }}
 spec:
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
+      app: {{ .Release.Namespace }}-{{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}
+        app: {{ .Release.Namespace }}-{{ .Release.Name }}
     spec:
       initContainers:
         - name: init-db
@@ -18,7 +18,7 @@ spec:
             [
               "sh",
               "-c",
-              'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z {{ .Values.mysql.name }}  3306; do sleep 1; printf "-"; done; echo -e "  >> MySQL DB Server has started";',
+              'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z {{ .Release.Namespace }}-{{ .Values.mysql.name }}  3306; do sleep 1; printf "-"; done; echo -e "  >> MySQL DB Server has started";',
             ]
       containers:
         - name: quiz-service
@@ -37,7 +37,7 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.mysql.name }}-db-password
+                  name: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-db-password
                   key: db-password
           volumeMounts:
             - name: my-azurefile-volume
@@ -45,5 +45,5 @@ spec:
       volumes:
         - name: my-azurefile-volume
           persistentVolumeClaim:
-            claimName: {{ .Values.mysql.name }}-azurefile-pvc
+            claimName: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-azurefile-pvc
 # TODO - How to dynamically pass tag
