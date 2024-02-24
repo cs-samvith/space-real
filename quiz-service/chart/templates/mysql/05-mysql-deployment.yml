@@ -34,7 +34,7 @@ spec:
       volumes:
         - name: mysql-persistent-storage
           persistentVolumeClaim:
-            claimName: {{ .Values.mysql.name }}-azure-managed-disk-pvc
+            claimName: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-azure-managed-disk-pvc
         - name: quiz-dbcreation-script
           configMap:
             name: {{ .Values.mysql.name }}-dbcreation-script

@@ -5,7 +5,7 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  storageClassName: {{ .Values.mysql.name }}-managed-premium-retain-sc
+  storageClassName: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-managed-premium-retain-sc
   resources:
     requests:
       storage: 1Gi     
