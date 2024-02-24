@@ -1,0 +1,89 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - /cluster-config/chart/*
+
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  containerRegistry: spacedevacr.azurecr.io
+  service_connection: ARM_SERVICE_CONNECTION
+  kubernetesServiceConnection: "spaceaks"
+  chartPath: $(System.DefaultWorkingDirectory)/cluster-config/chart
+  chartName: "cluster-config-chart"
+  tag: "$(Build.BuildNumber)"
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Build
+        steps:
+          - task: HelmInstaller@0
+            inputs:
+              helmVersion: "3.9.4"
+              installKubectl: true
+
+          - bash: |
+              # run helm lint
+              helm lint $(System.DefaultWorkingDirectory)/cluster-config/chart
+            displayName: "helm lint"
+            failOnStderr: true
+
+          - task: HelmDeploy@0
+            inputs:
+              command: "package"
+              chartPath: "$(System.DefaultWorkingDirectory)/cluster-config/chart"
+              chartVersion: $(tag)
+              arguments: --app-version $(tag)
+
+          - bash: |
+              pwd 
+              cd $(Build.ArtifactStagingDirectory)
+              ls
+              echo '$(ACR_PASSWORD)' | helm registry login $(containerRegistry) \
+              --username $(ACR_USER_NAME) \
+              --password-stdin
+              helm push $(chartName)-$(tag).tgz oci://$(containerRegistry)/space
+
+          - task: PublishBuildArtifacts@1
+            displayName: "Publish client artifacts"
+            inputs:
+              pathToPublish: $(Build.ArtifactStagingDirectory)/$(chartName)-$(tag).tgz
+              artifactName: Chart
+
+  - stage: Dev
+    dependsOn:
+      - build
+    jobs:
+      - job: Deploy
+        displayName: "Deploy Dev"
+        steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: "download chart artifacts"
+            inputs:
+              artifact: Chart
+              path: "$(System.ArtifactsDirectory)/chart"
+          - bash: |
+              pwd
+              cd $(System.ArtifactsDirectory)/chart
+              ls
+          - task: HelmDeploy@0
+            displayName: Helm Install Upgrade
+            inputs:
+              connectionType: "Kubernetes Service Connection"
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              command: upgrade
+              chartType: filepath
+              chartPath: $(System.ArtifactsDirectory)/chart/$(chartName)-$(tag).tgz
+              releaseName: helm-cluster-config
+              install: true
+              waitForExecution: false
+              overrideValues: namespace.name=dev
+              namespace: dev
