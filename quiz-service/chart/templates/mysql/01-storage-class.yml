@@ -1,7 +1,7 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: {{ .Values.mysql.name }}-managed-premium-retain-sc
+  name: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-managed-premium-retain-sc
 provisioner: kubernetes.io/azure-disk
 reclaimPolicy: Retain # Default is Delete, recommended is retain
 volumeBindingMode: WaitForFirstConsumer # Default is Immediate, recommended is WaitForFirstConsumer

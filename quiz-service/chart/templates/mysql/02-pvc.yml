@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.mysql.name }}-azure-managed-disk-pvc
+  name: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-azure-managed-disk-pvc
 spec:
   accessModes:
   - ReadWriteOnce
