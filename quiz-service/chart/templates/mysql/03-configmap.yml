@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.mysql.name }}-dbcreation-script
+  name: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-dbcreation-script
 data: 
   mysql_usermgmt.sql: |-
     DROP DATABASE IF EXISTS quizdb;

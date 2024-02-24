@@ -21,7 +21,7 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-db-password
+                  name: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-db-password
                   key: db-password
           ports:
             - containerPort: {{ .Values.mysql.containerPort }}
@@ -37,4 +37,4 @@ spec:
             claimName: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-azure-managed-disk-pvc
         - name: quiz-dbcreation-script
           configMap:
-            name: {{ .Values.mysql.name }}-dbcreation-script
+            name: {{ .Release.Namespace }}-{{ .Values.mysql.name }}-dbcreation-script
