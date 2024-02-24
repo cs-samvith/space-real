@@ -93,4 +93,6 @@ stages:
               install: true
               waitForExecution: false
               overrideValues: namespace.name=dev
+              arguments: --create-namespace
+              namespace: dev
        
