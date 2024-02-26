@@ -1,0 +1,22 @@
+ingress:
+  domain: samspace.cloud
+  microsite:
+    chartName: quiz-microsite
+  service:
+    chartName: quiz-service
+
+  # hosts:
+  #   - host:
+  #       domain: frontend.minikube.local
+  #       chart: frontend
+  #   - host:
+  #       domain: backend.minikube.local
+  #       chart: backend
+
+quiz-microsite:
+  image:
+    tag: "1.2"
+
+quiz-service:
+  image:
+    tag: "1.4"

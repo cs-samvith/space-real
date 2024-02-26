@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "database.fullname" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "database.fullname" . }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ include "database.fullname" . }}
+    spec:
+      containers:
+        - name: {{ include "database.fullname" . }}
+          image: mysql:5.6
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "database.fullname" . }}-secret
+                  key: db-password
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+            - name: quiz-dbcreation-script
+              mountPath: /docker-entrypoint-initdb.d #https://hub.docker.com/_/mysql Refer Initializing a fresh instance
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ include "database.fullname" . }}-pvc
+        - name: quiz-dbcreation-script
+          configMap:
+            name: {{ include "database.fullname" . }}-dbcreation-script

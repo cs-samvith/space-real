@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "filestorage.fullname" . }}-azurefile-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: {{ include "filestorage.fullname" . }}-azurefile-sc
+  resources:
+    requests:
+      storage: {{ .Values.file.storage }}

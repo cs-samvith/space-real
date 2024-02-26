@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "microsite.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "microsite.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "microsite.fullname" . }}
+    spec:
+      containers:
+        - name: {{ include "microsite.fullname" . }}
+          image: spacedevacr.azurecr.io/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: REACT_APP_Quiz_service
+              value: quiz-service

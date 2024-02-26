@@ -1,0 +1,9 @@
+secret:
+  mysql_username: "root"
+  mysql_password: "password@123"
+
+volume:
+  storage: 1Gi
+
+storageClass:
+  accountType: Standard_LRS

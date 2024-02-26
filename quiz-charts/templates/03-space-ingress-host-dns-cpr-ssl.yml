@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "app.fullname" . }}-ingress-host-dns-cpr-ssl
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  #defaultBackend:
+  #  service:
+  #    name: usermgmt-webapp-clusterip-service
+  #    port:
+  #      number: 80
+  rules:
+    - host: saks.quiz.{{ .Release.Name }}.{{ .Values.ingress.domain }}
+      http:
+        paths:
+          - path: /quizsvc(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-{{ .Values.ingress.service.chartName }}
+                port:
+                  number: 80
+          # - path: /
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: quiz-microsite-cluster-ip
+          #       port:
+          #         number: 80
+  tls:
+    - hosts:
+        - saks.quiz.dev.samspace.cloud
+      secretName: saks-quiz-dev-samspace-cloud-secret

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "service.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "service.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "service.fullname" . }}
+    spec:
+      initContainers:
+        - name: init-db
+          image: busybox:1.31
+          command:
+            [
+              "sh",
+              "-c",
+              'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z {{ include "service.fullname" . }}  3306; do sleep 1; printf "-"; done; echo -e "  >> MySQL DB Server has started";',
+            ]
+      containers:
+        - name: {{ include "service.fullname" . }}
+          image: spacedevacr.azurecr.io/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: DB_HOSTNAME
+              value: "mysql"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: "quizdb"
+            - name: DB_USERNAME
+              value: "root"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-{{ .Values.database.chartname }}-db-password
+                  key: db-password
+          volumeMounts:
+            - name: my-azurefile-volume
+              mountPath: "/home"
+      volumes:
+        - name: my-azurefile-volume
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-{{ .Values.filestorage.chartname }}-azurefile-pvc

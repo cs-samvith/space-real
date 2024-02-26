@@ -1,0 +1,9 @@
+database:
+  chartname: quiz-database
+
+filestorage:
+  chartname: quiz-filestorage
+
+image:
+  repository: quiz-service-real
+  tag: "1.0"
