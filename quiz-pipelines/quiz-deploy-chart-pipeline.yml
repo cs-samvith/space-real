@@ -55,7 +55,7 @@ stages:
               pwsh: true # For Linux
 
           - task: Docker@2
-            name: docker_build_and_push
+            name: docker_build_and_push_microsite
             displayName: docker build and push
             inputs:
               containerRegistry: $(containerRegistry)
@@ -85,7 +85,7 @@ stages:
               pwsh: true # For Linux
 
           - task: Docker@2
-            name: docker_build_and_push
+            name: docker_build_and_push_service
             displayName: docker build and push
             inputs:
               containerRegistry: $(containerRegistry)
