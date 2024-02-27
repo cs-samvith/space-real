@@ -1,5 +1,5 @@
 schedules:
-- cron: '* * * * *'
+- cron: '0 0 * * *'
   displayName: Daily midnight build
   branches:
     include:
@@ -23,4 +23,4 @@ steps:
     scriptType: 'pscore'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      az aks show --name space-dev-aks-cluster --resource-group space-dev-rg-aks
+      az aks stop --name space-dev-aks-cluster --resource-group space-dev-rg-aks
