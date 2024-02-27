@@ -23,7 +23,7 @@ variables:
   - name: chartPath
     value: $(System.DefaultWorkingDirectory)/quiz-microsite/chart
   - name: chartName
-    value: "quiz-chart"
+    value: "space-quiz"
   - name: tag
     value: "$(Build.BuildNumber)"
   - name: imageRepositoryMicrosite
