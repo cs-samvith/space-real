@@ -170,7 +170,9 @@ stages:
               releaseName: dev
               install: true
               waitForExecution: false
-              overrideValues: quiz-microsite.image.tag=$(tag) quiz-service.image.tag=$(tag)
+              arguments: >
+                --set quiz-microsite.image.tag=$(tag) 
+                --set quiz-service.image.tag=$(tag)
               namespace: dev
 
   # - stage: Qa
