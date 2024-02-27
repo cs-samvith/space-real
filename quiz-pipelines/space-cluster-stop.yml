@@ -1,22 +1,27 @@
 schedules:
-- cron: '0 0 * * *'
-  displayName: Daily midnight build
-
+  - cron: "* * * * *"
+    displayName: Daily midnight build
+    branches:
+      include:
+        - main
 pool:
   vmImage: ubuntu-latest
+
 pr: none
+
+trigger: none
 
 variables:
   - name: service_connection
     value: ARM_SERVICE_CONNECTION
 
 steps:
-- checkout: self
-- task: AzureCLI@2
-  displayName: Stop Cluster
-  inputs:
-    azureSubscription: $(service_connection)
-    scriptType: 'pscore'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      az aks stop --name space-dev-aks-cluster --resource-group space-dev-rg-aks
+  - checkout: self
+  - task: AzureCLI@2
+    displayName: Stop Cluster
+    inputs:
+      azureSubscription: $(service_connection)
+      scriptType: "pscore"
+      scriptLocation: "inlineScript"
+      inlineScript: |
+        az aks show --name space-dev-aks-cluster --resource-group space-dev-rg-aks
